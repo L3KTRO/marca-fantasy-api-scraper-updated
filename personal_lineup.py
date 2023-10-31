@@ -33,7 +33,7 @@ def ask_league_id_bearer():
     global HEADER_BEARER
     print("Introduce tu token (Para mas info visitar \n"
           "https://github.com/alxgarci/marca-fantasy-api-scraper-updated )")
-    HEADER_BEARER = str(input("Bearer Header: ")).replace("'", "")
+    HEADER_BEARER = "eyJhbGciOiJSUzI1NiIsImtpZCI6IkNBdXdPcWRMN2YyXzlhTVhZX3ZkbEcyVENXbVV4aklXV1MwNVB4WHljcUkiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiJOb3Qgc3VwcG9ydGVkIGN1cnJlbnRseS4gVXNlIG9pZCBjbGFpbS4iLCJleHRlbnNpb25fVXNlclByb2ZpbGVJZCI6IjQzOGI0NTgzLTYxZjktNDAyNC1iNzg1LTMzMzhjNzhiMzUyMSIsIm9pZCI6IjQzOGI0NTgzLTYxZjktNDAyNC1iNzg1LTMzMzhjNzhiMzUyMSIsImV4dGVuc2lvbl9FbWFpbFZlcmlmaWVkIjp0cnVlLCJhenAiOiJmZWM5ZTNmZC04Zjg4LTQ1YWItOGNiZC1iNzBiOWQ2NWRkZTAiLCJ2ZXIiOiIxLjAiLCJpYXQiOjE2OTg3OTA2NzcsImF1ZCI6ImZlYzllM2ZkLThmODgtNDVhYi04Y2JkLWI3MGI5ZDY1ZGRlMCIsImV4cCI6MTY5ODg3NzA3NywiaXNzIjoiaHR0cHM6Ly9sb2dpbi5sYWxpZ2EuZXMvMzM1MzE2ZWItZjYwNi00MzYxLWJiODYtMzVhN2VkY2RjZWMxL3YyLjAvIiwibmJmIjoxNjk4NzkwNjc3fQ.KEawYdGvSrFDdLBE-1NXAC5sXAaHBCSFfk3di_SBomJsyw_Y_PrwouEJ_GTayUMRQkaalzWJ2VUDju3dbbOjmi8VbK7SQpvmwQjo2q27fTYMHzUHTvgfJFefW2BKD8HxX94fHY1F8ZSryZN7U3dTFurNFccZWi9jiTqqHL57HBVtEcw29Tu8NIRZ7VzSxcJkQQDhbVqlCvPT3vZDwWITUyKbp9vw1V3XOm1B0WHi1Kn-S3AR3iyCANXtJvcuJSY0Va81B5gHpUr_qo_UChRQtgC05E1lbSaOo49EdZvaL7N4RZ3OSZ_22n1FFlyR-_faAiqSUofStVO8WxKQOySuAA"            #str(input("Bearer Header: ")).replace("'", "")
     logging.info(f"Guardado Header '{HEADER_BEARER[0:12]}...'")
 
 
@@ -83,6 +83,13 @@ def write_json_ligas(content, league_id):
     with open(directory + filename, "w", encoding="utf-8") as f:
         json.dump(content, f, indent=4)
 
+    # ESCRIBIR NEWS
+    filename = "news.json"
+    content = read_news(league_id)
+    with open(directory + filename, "w", encoding="utf-8") as f:
+        json.dump(content, f, indent=4)
+    ####
+
     logging.info(f"{directory}{filename} escrito correctamente")
 
 
@@ -127,6 +134,31 @@ def read_players(league_id):
     with ThreadPoolExecutor() as executor:
         for _ in executor.map(lambda p: get_player_team(*p), args):
             pass
+
+
+##  NEWS
+def read_news(league_id):
+    url = f"https://api-fantasy.llt-services.com/api/v3/leagues/{league_id}/news"
+    news = []
+    pages = 0
+    while True:
+        pages += 1
+        league_news_respone = requests.get(
+            f"{url}/{pages}",
+            auth=BearerAuth(HEADER_BEARER), timeout=REQUEST_TIMEOUT
+        )
+
+        league_news_payload = league_news_respone.json()
+        if len(league_news_payload) < 1: 
+            return news
+        
+        for item in league_news_payload:
+            news.append(item)
+            
+
+
+
+
 
 
 def create_base_dirs():
